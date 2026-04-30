@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text For You</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <script src="https://use.fontawesome.com/230e98b440.js"></script>
+    <style>
+        html, body {
+            width: 100%; height: 100%;
+            background-color: #eee; /* Kembali ke putih/abu terang sesuai aslinya */
+            color: #111;
+            text-align: center;
+            font-family: "Open Sans", sans-serif;
+            overflow: hidden; margin: 0;
+            transition: background-color 1s ease;
+        }
+
+        #soup-container { width: 100%; height: 100%; position: relative; }
+
+        #soup-nav {
+            position: absolute; left: 0; right: 0; bottom: 32px;
+            z-index: 9005; font-size: 64px; cursor: pointer; color: #111;
+        }
+
+        .letters-wrap { position: absolute; overflow: hidden; display: inline-block; }
+        .letters-wrap.mutable { width: 100%; height: 100%; top: 0; left: 0; }
+        
+        /* Ini kunci untuk abjad acak di background */
+        .letters-wrap.mutable .letter {
+            position: absolute;
+            transition: left 2s, top 2s, color 2s, opacity 2s;
+            color: #ccc; /* Warna abu-abu */
+            opacity: 0.3; /* Transparan */
+        }
+
+        .soup-title { font-size: 32px; margin-bottom: 10px; font-weight: bold; }
+        .soup-desc { font-size: 16px; padding: 0 30px; line-height: 1.5; }
+
+        .letters-wrap.position-data {
+            top: 50%; left: 50%; visibility: hidden;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Foto */
+        #photo-container {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 9010;
+        }
+        #photo-container img {
+            max-width: 85%; max-height: 65vh;
+            border: 5px solid #fff;
+            border-radius: 10px; 
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="soup-container">
+        <div id="segments"></div>
+        <div id="photo-container">
+            <img src="https://cdn.phototourl.com/free/2026-04-30-459573cb-32bc-4012-89f5-0f266d3a2bcc.jpg" alt="Foto">
+        </div>
+        
+        <div id="soup-nav">
+            <span id="btn-next"><i class="fa fa-arrow-circle-o-right" aria-hidden="true"></i></span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var content = [
+                { title: "camikum dambes ddk", desc: "(dan kacung kacungnya)" },
+                { title: "SENIN FOTO!!!", desc: "lek ga foto artine ga besti, ai het yu, gak parkir di parkiran ilegal neh, ga njalok teh botolmu neh, ora melok neng patria kambe ga nggodog mie neng omahmu neh ben" },
+                { title: "makasih ia dambos", desc: "emot senyum" }
+            ];
+
+            var step = 0; 
+
+            function initLetters() {
+                $("#segments").empty();
+                for (var i = 0; i < content.length; i++) {
+                    content[i].titleArr = content[i].title.split("");
+                    content[i].descArr = content[i].desc.split("");
+
+                    $("#segments").append("<div class='letters-wrap mutable'><div class='soup-title'></div><div class='soup-desc'></div></div>");
+                    $("#segments").append("<div class='letters-wrap position-data'><div class='soup-title'></div><div class='soup-desc'></div></div>");
+                    
+                    content[i].titleArr.forEach(char => {
+                        $(".soup-title").last().append("<span class='letter'>" + char + "</span>");
+                        $(".soup-title").eq(-2).append("<span class='letter'>" + char + "</span>");
+                    });
+                    content[i].descArr.forEach(char => {
+                        $(".soup-desc").last().append("<span class='letter'>" + char + "</span>");
+                        $(".soup-desc").eq(-2).append("<span class='letter'>" + char + "</span>");
+                    });
+                }
+            }
+
+            function updateDisplay() {
+                $("#photo-container").fadeOut();
+                $("body").css("background-color", "#eee");
+                $("#soup-nav").css("color", "#111");
+
+                // Acak semua abjad dulu agar jadi background
+                scrambleAll();
+
+                if (step === 0) {
+                    arrangeText(0);
+                } else if (step === 1) {
+                    arrangeText(1);
+                } else if (step === 2) {
+                    // Tahap Foto: Background jadi gelap, nav jadi putih
+                    $("body").css("background-color", "#111");
+                    $("#soup-nav").css("color", "#fff");
+                    $("#photo-container").fadeIn();
+                } else if (step === 3) {
+                    arrangeText(2);
+                } else {
+                    location.reload();
+                }
+            }
+
+            function arrangeText(index) {
+                // Judul
+                $(".mutable:eq(" + index + ") .soup-title .letter").each(function(i) {
+                    var pos = $(".position-data:eq(" + index + ") .soup-title .letter").eq(i).offset();
+                    $(this).css({ left: pos.left, top: pos.top, color: "#111", opacity: 1, zIndex: 9001 });
+                });
+
+                // Deskripsi
+                $(".mutable:eq(" + index + ") .soup-desc .letter").each(function(i) {
+                    var pos = $(".position-data:eq(" + index + ") .soup-desc .letter").eq(i).offset();
+                    $(this).css({ left: pos.left, top: pos.top, color: "#333", opacity: 1, zIndex: 9001 });
+                });
+            }
+
+            function scrambleAll() {
+                $(".mutable .letter").each(function() {
+                    // Jika huruf bukan bagian dari teks yang sedang aktif, acak posisinya
+                    $(this).css({
+                        left: Math.floor(Math.random() * ($(window).width() - 20)),
+                        top: Math.floor(Math.random() * ($(window).height() - 20)),
+                        color: "#ccc",
+                        opacity: 0.3,
+                        zIndex: 1
+                    });
+                });
+            }
+
+            $("#btn-next").click(function() {
+                step++;
+                updateDisplay();
+            });
+
+            initLetters();
+            updateDisplay(); // Jalankan pertama kali
+        });
+    </script>
+</body>
+</html>
